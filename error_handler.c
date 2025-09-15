@@ -1,30 +1,18 @@
 #include "error_handler.h"
+#include "parser.h"
 
-#include <stdlib.h>
-#include <sys/wait.h>
-void validate_non_null_pointer(void *pointer)
+void validate(int condition, char ***cmds_ptr, char ***args_ptr)
 {
-	if (pointer == NULL)
+	if (condition)
 	{
-		perror("ERROR: Expected non-null pointer\n");
-		exit(EXIT_FAILURE);
-	}
-}
+		perror("An error has occured");
 
-void validate_non_negative(int return_code)
-{
-	if (return_code < 0)
-	{
-		perror("ERROR: Expected return code above or equal to 0\n");
-		exit(EXIT_FAILURE);
-	}
-}
+		if (cmds_ptr != NULL)
+			free_commands(cmds_ptr);
 
-void validate_process_status(int status)
-{
-	if (!WIFEXITED(status))
-	{
-		fputs("ERROR: Process ended abnormally\n", stderr);
+		if (cmds_ptr != NULL)
+			free_args(args_ptr);
+	
 		exit(EXIT_FAILURE);
 	}
 }

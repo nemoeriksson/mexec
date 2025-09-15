@@ -2,8 +2,11 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/wait.h>
 
-void validate_non_null_pointer(void *pointer);
-void validate_non_negative(int return_code);
-void validate_process_status(int status);
+#define NON_NULL(a) (a == 0)
+#define NON_NEGATIVE(a) (a < 0)
+#define CHECK_STATUS(a) (!WIFEXITED(a))
+
+void validate(int condition, char ***cmds_ptr, char ***args_ptr);
 
