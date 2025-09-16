@@ -31,14 +31,6 @@
 #define NON_NEGATIVE(val) (val >= 0)
 
 /**
- * Checks if the status of a process ended successfully.
- * 
- * @param status the status of the process.
- * @returns 1 if the process exited successfully, else 0.
- */
-#define CHECK_STATUS(status) (WIFEXITED(status))
-
-/**
  * Validates a specified condition in order to see that functions
  * that may set errno completed as expected. Will free the given 
  * lists and exit the program with error code EXIT_FAILURE if the 

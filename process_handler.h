@@ -24,10 +24,10 @@
  * sets up pipes for communication between them. Will exit with
  * EXIT_FAILURE if any function that sets errno fails.
  *
- * @param commands: a list of all commands to execute as subprocesses
+ * @param commands_ptr: a pointer to the list of all commands to execute as subprocesses
  * @param command_count: the length of the commands list
  */
-void execute_commands(char **commands, int command_count);
+void execute_commands(char ***commands_ptr, int command_count);
 
 /**
  * Waits for command_count amount of subprocesses. Will exit with EXIT_FAILURE

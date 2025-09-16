@@ -4,10 +4,10 @@ CC = gcc
 CFLAGS = -g -std=gnu11 -Werror -Wall -Wextra -Wpedantic -Wmissing-declarations \
 		-Wmissing-prototypes -Wold-style-definition
 
-OBJ_COMPLINE = $(CC) $< -c $(CFLAGS)
+OBJ_COMPLINE = $(CC) $(CFLAGS) -c $<
 
 all: mexec.o parser.o error_handler.o process_handler.o
-	$(CC) $^ $(CFLAGS) -o mexec
+	$(CC) $(CFLAGS) $^ -o mexec
 
 mexec.o: mexec.c error_handler.h parser.h process_handler.h
 	$(OBJ_COMPLINE)

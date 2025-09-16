@@ -23,7 +23,7 @@ int main(const int argc, const char **argv)
 		fclose(input_stream);
 
 	// * Execution
-	execute_commands(commands, command_count);
+	execute_commands(&commands, command_count);
 	wait_for_children(command_count);
 
 	// * Cleanup
