@@ -8,13 +8,12 @@
  * care of.
  *
  * @author c24nen
- * @version 2025.09.25
+ * @version 2025.09.16
  */
 
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include "error_handler.h"
 
 #define READ_END 0
 #define WRITE_END 1
@@ -26,8 +25,10 @@
  *
  * @param commands_ptr: a pointer to the list of all commands to execute as subprocesses
  * @param command_count: the length of the commands list
+ *
+ * @returns 0 if successfull, else 1.
  */
-void execute_commands(char ***commands_ptr, int command_count);
+int execute_commands(char ***commands_ptr, int command_count);
 
 /**
  * Waits for command_count amount of subprocesses. Will exit with EXIT_FAILURE
@@ -36,7 +37,9 @@ void execute_commands(char ***commands_ptr, int command_count);
  * @param command_count: the amount of subprocesses to wait for. Is assumed to 
  *		correspond to the length of the command list given in execute_commands().
  *		Will exit with EXIT_FAILURE if any error occurs.
+ *
+ * @returns 0 if successfull, else 1.
  */
-void wait_for_children(int command_count);
+int wait_for_children(int command_count);
 
 
