@@ -1,11 +1,12 @@
-#include "parser.h"
 
 /**
  * parser.c
  *
  * @author c24nen
- * @version 2025.09.25
+ * @version 2025.09.17
  */
+
+#include "parser.h"
 
 FILE *get_input_stream(const int argc, const char **argv)
 {

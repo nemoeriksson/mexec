@@ -1,3 +1,4 @@
+
 #include "parser.h"
 #include "process_handler.h"
 
@@ -6,9 +7,11 @@
  *
  * Responsible for running the main program.
  * 
- * @returns 0 on successfull exit, otherwise EXIT_FAILURE.
+ * @author c24nen
+ * @version 2025.09.17
+ *
+ * @returns EXIT_SUCCESS on successfull exit, otherwise EXIT_FAILURE.
  */
-
 int main(const int argc, const char **argv)
 {
 	// * Setup
@@ -40,6 +43,6 @@ int main(const int argc, const char **argv)
 	// * Cleanup
 	free_commands(&commands);
 
-	return 0;
+	exit(EXIT_SUCCESS);
 }
 
