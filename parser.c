@@ -105,7 +105,7 @@ char **read_input_commands(FILE *input_stream, int *command_count)
 
 void free_commands(char ***commands_ptr)
 {
-	if (commands_ptr == NULL) return;
+	if (*commands_ptr == NULL) return;
 
 	// Iterate through and free all commands in the list
 	char **curr_cmd = *commands_ptr;

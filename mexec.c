@@ -35,10 +35,16 @@ int main(const int argc, const char **argv)
 	
 	// * Execution
 	if (execute_commands(&commands, command_count) == 1)
+	{
+		free_commands(&commands);
 		exit(EXIT_FAILURE);
+	}
 
 	if (wait_for_children(command_count) == 1)
+	{
+		free_commands(&commands);
 		exit(EXIT_FAILURE);
+	}
 
 	// * Cleanup
 	free_commands(&commands);

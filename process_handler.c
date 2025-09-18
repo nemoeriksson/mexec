@@ -45,7 +45,7 @@ static int execute(char ***commands_ptr, int command_count, int command_index, i
 		perror("Error creating fork");
 		return 1;
 	}
-
+	
 	char **args = get_args((*commands_ptr)[command_index]);
 
 	// Child process logic
@@ -75,6 +75,7 @@ static int execute(char ***commands_ptr, int command_count, int command_index, i
 				return 1;
 			}
 		}
+
 
 		if (execvp(args[0], args) == -1)
 		{
