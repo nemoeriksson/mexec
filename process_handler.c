@@ -12,6 +12,97 @@
 // * Helper functions
 
 /**
+ * Sets up the file descriptors for
+ * a child process. Returns 0 on
+ * sucess, else 1.
+ *
+ * @param pip_fds			The file descriptors for the pipe
+ * @param command_index		The index of the command to run
+ * @param command_count		Total amount of commands
+ * @param previous_read_fd	The read file descriptor for the previous pipe
+ *
+ * @return	0 on sucess, else 1.
+ */
+static int setup_child_pipes(int pipe_fds[2], 
+		int command_index, 
+		int command_count, 
+		int previous_read_fd)
+{
+	// Setup STDIN pipe file descriptors
+	if (command_index != 0)
+	{
+		if (dup2(previous_read_fd, STDIN_FILENO) == -1)
+		{
+			perror("Failed child process pipe STDIN setup");
+			return 1;
+		}
+		
+		close(previous_read_fd);
+	}
+	
+	// Setup STDOUT pipe file descriptors
+	if (command_index != command_count - 1)
+	{
+		close(pipe_fds[READ_END]);
+
+		if (dup2(pipe_fds[WRITE_END], STDOUT_FILENO) == -1)
+		{
+			perror("Failed child process STDOUT setup on child");
+			return 1;
+		}
+
+		close(pipe_fds[WRITE_END]);
+	}
+
+	return 0;
+}
+
+/**
+ * Closes the pipe file descriptors on 
+ * the parent process. Has no fail case.
+ *
+ * @param pipe_fds				The file descriptors for the pipe
+ * @param command_index			The index of the command to run
+ * @param command_count			Total amount of commands
+ * @param previous_read_fd_ptr	A pointer to the previous read file descriptor.
+ *								Will be updated when calling this function.
+ */
+static void close_parent_pipe(int pipe_fds[2],
+		int command_index,
+		int command_count,
+		int *previous_read_fd_ptr)
+{
+	if (command_index != 0)
+		close(*previous_read_fd_ptr);
+
+	if (command_index != command_count - 1)
+	{
+		close(pipe_fds[WRITE_END]);
+		*previous_read_fd_ptr = pipe_fds[READ_END];
+	}
+}
+
+/**
+ * Creates a new fork, includes error handling.
+ * Will return -1 on error, otherwise returns the 
+ * pid of the new forked process.
+ *
+ * @return	The pid of the new 
+ */
+static pid_t create_child_process(void)
+{
+	pid_t pid = fork();
+
+	if (pid < 0)
+	{
+		perror("Error creating fork");
+		return -1;
+	}
+
+	return pid;
+}
+
+/**
  * Opens a new sub process to execute a command. Will pipe
  * the output to the next command if it isn't the last. 
  *
@@ -23,7 +114,10 @@
  *
  * @returns 0 on success, else 1.
  */
-static int execute(char ***commands_ptr, int command_count, int command_index, int *previous_read_fd_ptr)
+static int execute(char ***commands_ptr, 
+		int command_count, 
+		int command_index, 
+		int *previous_read_fd_ptr)
 {
 	int pipe_fds[2];
 	int previous_read_fd = *previous_read_fd_ptr;
@@ -38,45 +132,23 @@ static int execute(char ***commands_ptr, int command_count, int command_index, i
 		}
 	}
 
-	pid_t pid = fork();
+	pid_t pid = create_child_process();
+	if (pid == -1) return 1;
 
-	if (pid < 0)
-	{
-		perror("Error creating fork");
-		return 1;
-	}
-	
 	char **args = get_args((*commands_ptr)[command_index]);
 
 	// Child process logic
 	if (pid == 0)
 	{
-		// Setup STDIN pipe file descriptors
-		if (command_index != 0)
+		// Setup pipes
+		if (setup_child_pipes(pipe_fds, command_index, command_count, previous_read_fd) == 1)
 		{
-			if (dup2(previous_read_fd, STDIN_FILENO) == -1 ||
-						close(previous_read_fd) == -1)
-			{
-				perror("Failed child process pipe STDIN setup");
-				free_commands(commands_ptr);
-				return 1;
-			}
-		}
-		
-		// Setup STDOUT pipe file descriptors
-		if (command_index != command_count - 1)
-		{
-			if (close(pipe_fds[READ_END]) == -1 ||
-					dup2(pipe_fds[WRITE_END], STDOUT_FILENO) == -1 ||
-					close(pipe_fds[WRITE_END]) == -1)
-			{
-				perror("Failed child process STDOUT setup on child");
-				free_commands(commands_ptr);
-				return 1;
-			}
+			free_commands(commands_ptr);
+			free_args(&args);
+			return 1;
 		}
 
-
+		// Execute the command
 		if (execvp(args[0], args) == -1)
 		{
 			perror("Failed to execute command on child");
@@ -86,29 +158,9 @@ static int execute(char ***commands_ptr, int command_count, int command_index, i
 		}
 	}
 	
-	// Parent process logic
-	if (command_index != 0)
-	{
-		if (close(previous_read_fd) == -1)
-		{
-			perror("Failed to close read end of pipe on parent");
-			free_commands(commands_ptr);
-			return 1;
-		}
-	}
-
-	if (command_index != command_count - 1)
-	{
-		if (close(pipe_fds[WRITE_END]) == -1)
-		{
-			perror("Failed to close write end of pipe on parent process");
-			free_commands(commands_ptr);
-			return 1;
-		}
-
-		previous_read_fd = pipe_fds[READ_END];
-	}
-
+	// Close the pipe & file descriptors on parent
+	close_parent_pipe(pipe_fds, command_index, command_count, &previous_read_fd);
+	
 	free_args(&args);
 
 	*previous_read_fd_ptr = previous_read_fd;
@@ -142,7 +194,7 @@ int wait_for_children(int command_count)
 		}
 		
 		// Check if child process failed
-		if (WEXITSTATUS(child_status) == EXIT_FAILURE) 			
+		if (child_status != 0) 			
 			return 1;
 	}
 

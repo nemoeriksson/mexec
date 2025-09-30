@@ -6,7 +6,9 @@ CFLAGS = -g -std=gnu11 -Werror -Wall -Wextra -Wpedantic -Wmissing-declarations \
 
 OBJ_COMPLINE = $(CC) $(CFLAGS) -c $<
 
-all: mexec.o parser.o process_handler.o
+all: mexec
+
+mexec: mexec.o parser.o process_handler.o
 	$(CC) $(CFLAGS) $^ -o mexec
 
 mexec.o: mexec.c parser.h process_handler.h
